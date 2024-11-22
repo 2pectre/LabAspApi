@@ -42,8 +42,8 @@ TEMP_DIR="C:/srtmp/"
 mkdir -p "$TEMP_DIR"
 
 # 스크립트의 절대 경로 설정
-SCRIPT_PWD="$(cd "$(dirname "$0")" && pwd)"
-BASE_DIR="$(basename "$SCRIPT_PWD")"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+BASE_DIR="$(basename "$SCRIPT_DIR")"
 PID_FILE="${TEMP_DIR}${BASE_DIR}_deploy.pid"
 
 if [ -f "$PID_FILE" ]; then
@@ -128,6 +128,31 @@ notify_failure() {
     echo "=============================="
 }
 
+delete_containers() {
+    local int=$1
+
+    for PROJECT in "${RESV_PROJECTS[@]}"; do
+        if contains_project "$PROJECT"; then
+            local del_env=""
+            local msg=""
+
+            if [ "$int" = "1" ]; then
+                del_env="${PROJECT}_${NEW_ENVS[$PROJECT]}"
+                msg="프로젝트 $PROJECT 의 컨테이너 $del_env 를 중지하고 삭제합니다."
+            else # "0"
+                del_env="${PROJECT}_$(get_prev_env "${NEW_ENVS[$PROJECT]}")"
+                msg="프로젝트 $PROJECT 의 이전 환경 컨테이너 $del_env 를 삭제합니다."
+            fi
+
+            echo "=============================="
+            echo "$msg"
+            echo "=============================="
+
+            $DOCKER_COMPOSE stop "$del_env" && $DOCKER_COMPOSE rm -f "$del_env"
+        fi
+    done
+}
+
 contains_project() {
     local project=$1
     for item in "${PROJECTS[@]}"; do
@@ -170,19 +195,12 @@ for PROJECT in "${PROJECTS[@]}"; do
         NEW_ENVS["$PROJECT"]="blue"
     fi
 
-    ### Git을 사용하여 변경 사항 확인, 마지막 배포 커밋이 있는 경우
-    # deploy.sh 스크립트가 위치한 디렉토리를 기준으로 경로 설정
-    SCRIPT_DIR="$(dirname "$0")"
-    PARENT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-    GIT_DIR="$PARENT_DIR/.git"
-    WORK_TREE="$PARENT_DIR"
-
+    # Git을 사용하여 변경 사항 확인, 마지막 배포 커밋이 있는 경우
     LAST_DEPLOYED_COMMIT=$(cat "$HASH_DIR/$PROJECT.hash" 2>/dev/null || echo "")
 
     if [ -n "$LAST_DEPLOYED_COMMIT" ]; then
-        # 변경 사항 확인 시 --git-dir 및 --work-tree 옵션을 사용하여 경로 지정
-        CHANGED_FILES=$(git --git-dir="$GIT_DIR" --work-tree="$WORK_TREE" diff --name-only "$LAST_DEPLOYED_COMMIT"..origin/deploy)
-        if echo "$CHANGED_FILES" | grep -iq "^$PROJECT/"; then
+        CHANGED_FILES=$(git diff --name-only "$LAST_DEPLOYED_COMMIT"..origin/deploy)
+        if echo "$CHANGED_FILES" | grep -iq "^$BASE_DIR/$PROJECT/"; then
             echo "=============================="
             echo "프로젝트 $PROJECT 에 변경 사항이 있습니다. 블루-그린 전환을 시작합니다."
             echo "=============================="
@@ -201,31 +219,6 @@ for PROJECT in "${PROJECTS[@]}"; do
     fi
 
 done
-
-delete_containers() {
-    local int=$1
-
-    for PROJECT in "${RESV_PROJECTS[@]}"; do
-        if contains_project "$PROJECT"; then
-            local del_env=""
-            local msg=""
-
-            if [ "$int" = "1" ]; then
-                del_env="${PROJECT}_${NEW_ENVS[$PROJECT]}"
-                msg="프로젝트 $PROJECT 의 컨테이너 $del_env 를 중지하고 삭제합니다."
-            else # "0"
-                del_env="${PROJECT}_$(get_prev_env "${NEW_ENVS[$PROJECT]}")"
-                msg="프로젝트 $PROJECT 의 이전 환경 컨테이너 $del_env 를 삭제합니다."
-            fi
-
-            echo "=============================="
-            echo "$msg"
-            echo "=============================="
-
-            $DOCKER_COMPOSE stop "$del_env" && $DOCKER_COMPOSE rm -f "$del_env"
-        fi
-    done
-}
 
 ### 하나 이상 프로젝트 배포 상황 발생
 if [ ${#RESV_PROJECTS[@]} -gt 0 ]; then

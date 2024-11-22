@@ -31,7 +31,7 @@ set -e
 
 ### 로그 기록
 LOG_DIR="/etc/log"
-sudo mkdir -p "$LOG_DIR"
+mkdir -p "$LOG_DIR"
 
 LOG_FILE="$LOG_DIR/deploy_$(date +'%Y%m%d_%H%M%S').log"
 exec > >(while IFS= read -r line; do echo "$(date +'%Y-%m-%d %H:%M:%S') $line"; done | tee -a "$LOG_FILE") 2>&1

@@ -7,6 +7,17 @@ x-api: &api
   stop_grace_period: 10s
 #--------------------------------------------------
 services:
+  labaspapi_0_nginx:
+    restart: always
+    image: nginx:latest
+    container_name: labaspapi_0_nginx
+    ports:
+      - "80:8080"
+    volumes:
+      - .etc/nginx:/etc/nginx:ro
+    networks:
+      - labaspapi_0_network
+#--------------------------------------------------
   labaspapi_blue:
     <<: *api
     build:
@@ -21,45 +32,48 @@ services:
     image: labaspapi:green
     container_name: labaspapi_green
 #--------------------------------------------------
-  labaspapi_aaa_blue:
+  labaspapi_aaaa_blue:
     <<: *api
     build:
-      context: ./LabAspApi_AAA
-    image: labaspapi_aaa:blue
-    container_name: labaspapi_aaa_blue
+      context: ./LabAspApi_AAAA
+    image: labaspapi_aaaa:blue
+    container_name: labaspapi_aaaa_blue
 
-  labaspapi_aaa_green:
+  labaspapi_aaaa_green:
     <<: *api
     build:
-      context: ./LabAspApi_AAA
-    image: labaspapi_aaa:green
-    container_name: labaspapi_aaa_green
+      context: ./LabAspApi_AAAA
+    image: labaspapi_aaaa:green
+    container_name: labaspapi_aaaa_green
 #--------------------------------------------------
-  labaspapi_bbb_blue:
+  labaspapi_bbbb_blue:
     <<: *api
     build:
-      context: ./LabAspApi_BBB
-    image: labaspapi_bbb:blue
-    container_name: labaspapi_bbb_blue
+      context: ./LabAspApi_BBBB
+    image: labaspapi_bbbb:blue
+    container_name: labaspapi_bbbb_blue
 
-  labaspapi_bbb_green:
+  labaspapi_bbbb_green:
     <<: *api
     build:
-      context: ./LabAspApi_BBB
-    image: labaspapi_bbb:green
-    container_name: labaspapi_bbb_green
+      context: ./LabAspApi_BBBB
+    image: labaspapi_bbbb:green
+    container_name: labaspapi_bbbb_green
 #--------------------------------------------------
-  labaspapi_0_nginx:
-    restart: always
-    image: nginx:latest
-    container_name: labaspapi_0_nginx
-    ports:
-      - "80:8080"
-    volumes:
-      - .etc/nginx:/etc/nginx:ro
-    networks:
-      - labaspapi_0_network
+  labaspapi_cccc_blue:
+    <<: *api
+    build:
+      context: ./LabAspApi_CCCC
+    image: labaspapi_cccc:blue
+    container_name: labaspapi_cccc_blue
 
+  labaspapi_cccc_green:
+    <<: *api
+    build:
+      context: ./LabAspApi_CCCC
+    image: labaspapi_cccc:green
+    container_name: labaspapi_cccc_green
+#--------------------------------------------------
 networks:
   labaspapi_0_network:
     driver: bridge

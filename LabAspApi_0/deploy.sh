@@ -30,8 +30,8 @@ fi
 set -e
 
 ### 로그 기록
-LOG_DIR="$(dirname "$0")/etc/log"
-mkdir -p "$LOG_DIR"
+LOG_DIR="/etc/log"
+sudo mkdir -p "$LOG_DIR"
 
 LOG_FILE="$LOG_DIR/deploy_$(date +'%Y%m%d_%H%M%S').log"
 exec > >(while IFS= read -r line; do echo "$(date +'%Y-%m-%d %H:%M:%S') $line"; done | tee -a "$LOG_FILE") 2>&1
@@ -72,7 +72,7 @@ if ! docker info >/dev/null 2>&1; then
     exit 1
 fi
 
-HASH_DIR="$(dirname "$0")/etc/hash"
+HASH_DIR="/etc/hash"
 mkdir -p "$HASH_DIR"
 
 ### Windows 환경에 맞춘 경로

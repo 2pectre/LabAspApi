@@ -12,11 +12,20 @@ declare -a PROJECTS=(
 # chmod u+x deploy.sh
 # bash deploy.sh
 
+### Git 관련 경로 설정 (최상단 폴더에 있는 .git 을 참조)
+GIT_REPO_DIR="$(cd "$SCRIPT_PWD/.." && pwd)"
+GIT_DIR="$GIT_REPO_DIR/.git"
+WORK_TREE="$GIT_REPO_DIR"
+
+echo $GIT_REPO_DIR
+echo $GIT_DIR
+echo $WORK_TREE
+
 ### GitHub Actions 환경에서는 GITHUB_REF를 사용하고, 로컬 환경에서는 git 명령어를 사용
 if [ -n "$GITHUB_REF" ]; then
     CURRENT_BRANCH=${GITHUB_REF##*/}
 else
-    CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+    CURRENT_BRANCH=$(git --git-dir="$GIT_DIR" --work-tree="$WORK_TREE" rev-parse --abbrev-ref HEAD)
 fi
 
 if [ "$CURRENT_BRANCH" != "deploy" ]; then
@@ -128,80 +137,6 @@ notify_failure() {
     echo "=============================="
 }
 
-contains_project() {
-    local project=$1
-    for item in "${PROJECTS[@]}"; do
-        if [[ "$item" == "$project" ]]; then
-            return 0
-        fi
-    done
-    return 1
-}
-
-get_prev_env() {
-    local new_env=$1
-    if [ "$new_env" = "blue" ]; then
-        echo "green"
-    else
-        echo "blue"
-    fi
-}
-
-### 스크립트 메인 진입점
-# Git에서 최신 변경 사항 반영
-git fetch origin deploy
-
-for PROJECT in "${PROJECTS[@]}"; do
-    # 각 프로젝트의 현재 블루-그린 상태 검사 후 다음 배포 환경 저장
-    if $DOCKER_COMPOSE ps --filter "name=${PROJECT}_blue" --filter "status=running" | grep -q "${PROJECT}_blue"; then
-        echo "=============================="
-        echo "프로젝트 $PROJECT 의 현재 구동 컨테이너는 블루입니다. 그린으로 전환합니다."
-        echo "=============================="
-        NEW_ENVS["$PROJECT"]="green"
-    elif $DOCKER_COMPOSE ps --filter "name=${PROJECT}_green" --filter "status=running" | grep -q "${PROJECT}_green"; then
-        echo "=============================="
-        echo "프로젝트 $PROJECT 의 현재 구동 컨테이너는 그린입니다. 블루로 전환합니다."
-        echo "=============================="
-        NEW_ENVS["$PROJECT"]="blue"
-    else
-        echo "=============================="
-        echo "프로젝트 $PROJECT 의 현재 구동 컨테이너는 없습니다. 블루로 시작합니다."
-        echo "=============================="
-        NEW_ENVS["$PROJECT"]="blue"
-    fi
-
-    ### Git을 사용하여 변경 사항 확인, 마지막 배포 커밋이 있는 경우
-    # deploy.sh 스크립트가 위치한 디렉토리를 기준으로 경로 설정
-    SCRIPT_DIR="$(dirname "$0")"
-    PARENT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-    GIT_DIR="$PARENT_DIR/.git"
-    WORK_TREE="$PARENT_DIR"
-
-    LAST_DEPLOYED_COMMIT=$(cat "$HASH_DIR/$PROJECT.hash" 2>/dev/null || echo "")
-
-    if [ -n "$LAST_DEPLOYED_COMMIT" ]; then
-        # 변경 사항 확인 시 --git-dir 및 --work-tree 옵션을 사용하여 경로 지정
-        CHANGED_FILES=$(git --git-dir="$GIT_DIR" --work-tree="$WORK_TREE" diff --name-only "$LAST_DEPLOYED_COMMIT"..origin/deploy)
-        if echo "$CHANGED_FILES" | grep -iq "^$PROJECT/"; then
-            echo "=============================="
-            echo "프로젝트 $PROJECT 에 변경 사항이 있습니다. 블루-그린 전환을 시작합니다."
-            echo "=============================="
-            deploy_new_env "$PROJECT"
-        else
-            echo "=============================="
-            echo "프로젝트 $PROJECT 에 새로운 변경 사항이 없습니다. 배포를 건너뜁니다."
-            echo "=============================="
-        fi
-    else
-        # 마지막 배포 커밋이 없는 경우, 모든 변경 사항을 배포
-        echo "=============================="
-        echo "최근 배포 커밋 정보가 없습니다. 프로젝트 $PROJECT 에 대해 블루-그린 전환을 시작합니다."
-        echo "=============================="
-        deploy_new_env "$PROJECT"
-    fi
-
-done
-
 delete_containers() {
     local int=$1
 
@@ -226,6 +161,74 @@ delete_containers() {
         fi
     done
 }
+
+contains_project() {
+    local project=$1
+    for item in "${PROJECTS[@]}"; do
+        if [[ "$item" == "$project" ]]; then
+            return 0
+        fi
+    done
+    return 1
+}
+
+get_prev_env() {
+    local new_env=$1
+    if [ "$new_env" = "blue" ]; then
+        echo "green"
+    else
+        echo "blue"
+    fi
+}
+
+### 스크립트 메인 진입점
+# Git에서 최신 변경 사항 반영
+git --git-dir="$GIT_DIR" --work-tree="$WORK_TREE" fetch origin deploy
+
+for PROJECT in "${PROJECTS[@]}"; do
+    # 각 프로젝트의 현재 블루-그린 상태 검사 후 다음 배포 환경 저장
+    if $DOCKER_COMPOSE ps --filter "name=${PROJECT}_blue" --filter "status=running" | grep -q "${PROJECT}_blue"; then
+        echo "=============================="
+        echo "프로젝트 $PROJECT 의 현재 구동 컨테이너는 블루입니다. 그린으로 전환합니다."
+        echo "=============================="
+        NEW_ENVS["$PROJECT"]="green"
+    elif $DOCKER_COMPOSE ps --filter "name=${PROJECT}_green" --filter "status=running" | grep -q "${PROJECT}_green"; then
+        echo "=============================="
+        echo "프로젝트 $PROJECT 의 현재 구동 컨테이너는 그린입니다. 블루로 전환합니다."
+        echo "=============================="
+        NEW_ENVS["$PROJECT"]="blue"
+    else
+        echo "=============================="
+        echo "프로젝트 $PROJECT 의 현재 구동 컨테이너는 없습니다. 블루로 시작합니다."
+        echo "=============================="
+        NEW_ENVS["$PROJECT"]="blue"
+    fi
+
+    ### Git을 사용하여 변경 사항 확인, 마지막 배포 커밋이 있는 경우
+    LAST_DEPLOYED_COMMIT=$(cat "$HASH_DIR/$PROJECT.hash" 2>/dev/null || echo "")
+
+    if [ -n "$LAST_DEPLOYED_COMMIT" ]; then
+        # 변경 사항 확인 시 --git-dir 및 --work-tree 옵션을 사용하여 경로 지정
+        CHANGED_FILES=$(git --git-dir="$GIT_DIR" --work-tree="$WORK_TREE" diff --name-only "$LAST_DEPLOYED_COMMIT"..origin/deploy)
+        if echo "$CHANGED_FILES" | grep -iq "^$PROJECT/"; then
+            echo "=============================="
+            echo "프로젝트 $PROJECT 에 변경 사항이 있습니다. 블루-그린 전환을 시작합니다."
+            echo "=============================="
+            deploy_new_env "$PROJECT"
+        else
+            echo "=============================="
+            echo "프로젝트 $PROJECT 에 새로운 변경 사항이 없습니다. 배포를 건너뜁니다."
+            echo "=============================="
+        fi
+    else
+        # 마지막 배포 커밋이 없는 경우, 모든 변경 사항을 배포
+        echo "=============================="
+        echo "최근 배포 커밋 정보가 없습니다. 프로젝트 $PROJECT 에 대해 블루-그린 전환을 시작합니다."
+        echo "=============================="
+        deploy_new_env "$PROJECT"
+    fi
+
+done
 
 ### 하나 이상 프로젝트 배포 상황 발생
 if [ ${#RESV_PROJECTS[@]} -gt 0 ]; then
@@ -281,19 +284,19 @@ if [ ${#RESV_PROJECTS[@]} -gt 0 ]; then
 
     # 배포 완료 후 최신 커밋을 기록
     for PROJECT in "${RESV_PROJECTS[@]}"; do
-        git rev-parse origin/deploy > "$HASH_DIR/$PROJECT.hash"
+        git --git-dir="$GIT_DIR" --work-tree="$WORK_TREE" rev-parse origin/deploy > "$HASH_DIR/$PROJECT.hash"
     done
 
     echo "=============================="
     echo "수정된 *.hash 와 nginx.config 를 deploy 브랜치에 커밋하고 main 에 병합합니다."
     echo "=============================="
-    git add "$HASH_DIR"/*.hash "$NGINX_PATH"
-    git commit -m "Final deployment completed"
-    git push origin deploy
-    git checkout main
-    git merge deploy
-    git push origin main
-    git checkout deploy
+    git --git-dir="$GIT_DIR" --work-tree="$WORK_TREE" add "$HASH_DIR"/*.hash "$NGINX_PATH"
+    git --git-dir="$GIT_DIR" --work-tree="$WORK_TREE" commit -m "Final deployment completed"
+    git --git-dir="$GIT_DIR" --work-tree="$WORK_TREE" push origin deploy
+    git --git-dir="$GIT_DIR" --work-tree="$WORK_TREE" checkout main
+    git --git-dir="$GIT_DIR" --work-tree="$WORK_TREE" merge deploy
+    git --git-dir="$GIT_DIR" --work-tree="$WORK_TREE" push origin main
+    git --git-dir="$GIT_DIR" --work-tree="$WORK_TREE" checkout deploy
 
     echo "=============================="
     echo "배포를 완료했습니다!"

@@ -1,0 +1,65 @@
+x-api: &api
+  restart: always
+  environment:
+    - ASPNETCORE_ENVIRONMENT=Production
+  networks:
+    - labaspapi_0_network
+  stop_grace_period: 10s
+#--------------------------------------------------
+services:
+  labaspapi_blue:
+    <<: *api
+    build:
+      context: ./LabAspApi
+    image: labaspapi:blue
+    container_name: labaspapi_blue
+
+  labaspapi_green:
+    <<: *api
+    build:
+      context: ./LabAspApi
+    image: labaspapi:green
+    container_name: labaspapi_green
+#--------------------------------------------------
+  labaspapi_aaa_blue:
+    <<: *api
+    build:
+      context: ./LabAspApi_AAA
+    image: labaspapi_aaa:blue
+    container_name: labaspapi_aaa_blue
+
+  labaspapi_aaa_green:
+    <<: *api
+    build:
+      context: ./LabAspApi_AAA
+    image: labaspapi_aaa:green
+    container_name: labaspapi_aaa_green
+#--------------------------------------------------
+  labaspapi_bbb_blue:
+    <<: *api
+    build:
+      context: ./LabAspApi_BBB
+    image: labaspapi_bbb:blue
+    container_name: labaspapi_bbb_blue
+
+  labaspapi_bbb_green:
+    <<: *api
+    build:
+      context: ./LabAspApi_BBB
+    image: labaspapi_bbb:green
+    container_name: labaspapi_bbb_green
+#--------------------------------------------------
+  labaspapi_0_nginx:
+    restart: always
+    image: nginx:latest
+    container_name: labaspapi_0_nginx
+    ports:
+      - "80:8080"
+    volumes:
+      - .etc/nginx:/etc/nginx:ro
+    networks:
+      - labaspapi_0_network
+
+networks:
+  labaspapi_0_network:
+    driver: bridge

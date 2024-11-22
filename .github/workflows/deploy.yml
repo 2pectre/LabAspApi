@@ -1,0 +1,26 @@
+name: lab deploy
+
+on:
+  push:
+    branches:
+      - deploy
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git user
+        run: |
+          git config --global user.name "2pectre"
+          git config --global user.email "2pectre@users.noreply.github.com"
+        shell: powershell
+
+      - name: Run deploy.sh
+        run: |
+          & "C:\Program Files\Git\bin\bash.exe" ./LabAspApi_0/deploy.sh
+        shell: powershell

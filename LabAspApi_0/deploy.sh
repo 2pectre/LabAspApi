@@ -30,7 +30,7 @@ fi
 set -e
 
 ### 로그 기록
-LOG_DIR="/etc/log"
+LOG_DIR="log"
 mkdir -p "$LOG_DIR"
 
 LOG_FILE="$LOG_DIR/deploy_$(date +'%Y%m%d_%H%M%S').log"
@@ -72,15 +72,15 @@ if ! docker info >/dev/null 2>&1; then
     exit 1
 fi
 
-HASH_DIR="/etc/hash"
+HASH_DIR="hash"
 mkdir -p "$HASH_DIR"
 
 ### Windows 환경에 맞춘 경로
 COMPOSE_PATH="${COMPOSE_PATH:-./docker-compose.yml}"
 DOCKER_COMPOSE="docker-compose -f $COMPOSE_PATH"
 DELAY=5
-NGINX_PATH="${NGINX_PATH:-./etc/nginx/nginx.conf}"
-NGINX_TEMP_PATH="${NGINX_TEMP_PATH:-./etc/nginx_temp.conf}"
+NGINX_PATH="${NGINX_PATH:-./nginx/nginx.conf}"
+NGINX_TEMP_PATH="${NGINX_TEMP_PATH:-./nginx_temp.conf}"
 NGINX_CONTAINER="$(echo "${BASE_DIR}_nginx" | tr '[:upper:]' '[:lower:]')"
 
 declare -A NEW_ENVS

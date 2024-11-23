@@ -296,7 +296,14 @@ if [ ${#RESV_PROJECTS[@]} -gt 0 ]; then
     echo "=============================="
     echo "수정된 *.hash 와 nginx.config 를 deploy 브랜치에 커밋하고 main 에 병합합니다."
     echo "=============================="
-    git pull origin deploy
+    LOCK_FILE="${TEMP_DIR}deploy_git_op.lock"
+    exec 200>"$LOCK_FILE"
+    trap 'flock -u 200; rm -f "$LOCK_FILE"' EXIT
+    flock -x 200
+
+    echo "=============================="
+    echo "다른 작업이 잠금을 보유하고 있습니다. 잠금이 해제될 때까지 대기합니다."
+    echo "=============================="
     git add "$HASH_DIR"/*.hash "$NGINX_PATH"
     git commit -m "Final deployment completed"
     git push origin deploy
@@ -304,6 +311,8 @@ if [ ${#RESV_PROJECTS[@]} -gt 0 ]; then
     git merge deploy
     git push origin main
     git checkout deploy
+
+    flock -u 200
 
     echo "=============================="
     echo "배포를 완료했습니다!"

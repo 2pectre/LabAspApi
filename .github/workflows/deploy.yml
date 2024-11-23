@@ -23,4 +23,6 @@ jobs:
       - name: Run deploy.sh
         run: |
           & "C:\Program Files\Git\bin\bash.exe" ./LabAspApi_0/deploy.sh
+          & "C:\Program Files\Git\bin\bash.exe" ./LabAspApi_1/deploy.sh
+          & "C:\Program Files\Git\bin\bash.exe" ./LabAspApi_2/deploy.sh
         shell: powershell

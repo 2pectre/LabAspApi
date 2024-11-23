@@ -15,6 +15,7 @@ services:
       - "80:8080"
     volumes:
       - ./nginx:/etc/nginx:ro
+      - ./log/nginx:/var/log/nginx
     networks:
       - labaspapi_0_network
 #--------------------------------------------------

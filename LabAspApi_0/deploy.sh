@@ -24,7 +24,7 @@ fi
 set -e
 
 ### 로그 기록
-LOG_DIR="log"
+LOG_DIR="log/deploy"
 mkdir -p "$LOG_DIR"
 
 LOG_FILE="$LOG_DIR/deploy_$(date +'%Y%m%d_%H%M%S').log"

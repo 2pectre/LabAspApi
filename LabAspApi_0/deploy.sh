@@ -9,9 +9,6 @@ declare -a PROJECTS=(
     "labaspapi_cccc"
 )
 
-# chmod u+x deploy.sh
-# bash deploy.sh
-
 ### GitHub Actions 환경에서는 GITHUB_REF를 사용하고, 로컬 환경에서는 git 명령어를 사용
 if [ -n "$GITHUB_REF" ]; then
     CURRENT_BRANCH=${GITHUB_REF##*/}

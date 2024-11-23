@@ -8,9 +8,6 @@ declare -a PROJECTS=(
     "labaspapi_ffff"
 )
 
-# chmod u+x deploy.sh
-# bash deploy.sh
-
 ### GitHub Actions 환경에서는 GITHUB_REF를 사용하고, 로컬 환경에서는 git 명령어를 사용
 if [ -n "$GITHUB_REF" ]; then
     CURRENT_BRANCH=${GITHUB_REF##*/}
@@ -230,14 +227,29 @@ if [ ${#RESV_PROJECTS[@]} -gt 0 ]; then
     echo "nginx 템플릿에서 새로운 nginx 구성을 복사합니다."
     echo "=============================="
 
+    # nginx_temp.conf 템플릿 치환
+    UPSTREAMS=""
+    LOCATIONS=""
+
+    for PROJECT in "${PROJECTS[@]}"; do
+        if [[ " ${RESV_PROJECTS[@]} " =~ " $PROJECT " ]]; then
+            UPSTREAMS+="upstream ${PROJECT} { server ${PROJECT}_${NEW_ENVS[$PROJECT]}:5000; }"$'\n'
+        else
+            UPSTREAMS+="upstream ${PROJECT} { server ${PROJECT}_$(get_prev_env "${NEW_ENVS[$PROJECT]}"):5000; }"$'\n'
+        fi
+
+        PROC_ENDPOINT="${PROJECT#*_}"
+
+        if [ "$PROC_ENDPOINT" = "$PROJECT" ]; then
+            PROC_ENDPOINT="svwl"
+        fi
+
+        LOCATIONS+="location /${PROC_ENDPOINT}/ { proxy_pass http://${PROJECT}/; }"$'\n'
+    done
+
     while IFS= read -r line; do
-        for PROJECT in "${PROJECTS[@]}"; do
-            if [[ " ${RESV_PROJECTS[@]} " =~ " $PROJECT " ]]; then
-                line="${line//\{\{${PROJECT}_env\}\}/${NEW_ENVS[$PROJECT]}}"
-            else
-                line="${line//\{\{${PROJECT}_env\}\}/$(get_prev_env "${NEW_ENVS[$PROJECT]}")}"
-            fi
-        done
+        line="${line//\{\{upstreams\}\}/$UPSTREAMS}"
+        line="${line//\{\{locations\}\}/$LOCATIONS}"
         echo "$line" >> "$NGINX_PATH"
     done < "$NGINX_TEMP_PATH"
 

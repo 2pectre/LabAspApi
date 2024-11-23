@@ -231,14 +231,28 @@ if [ ${#RESV_PROJECTS[@]} -gt 0 ]; then
     echo "nginx 템플릿에서 새로운 nginx 구성을 복사합니다."
     echo "=============================="
 
+    # nginx_temp.conf 템플릿 치환
+    UPSTREAMS=""
+    LOCATIONS=""
+    for PROJECT in "${PROJECTS[@]}"; do
+        if [[ " ${RESV_PROJECTS[@]} " =~ " $PROJECT " ]]; then
+            UPSTREAMS+="upstream ${PROJECT}{server ${PROJECT}_${NEW_ENVS[$PROJECT]}:5000;}"$'\n'
+        else
+            UPSTREAMS+="upstream ${PROJECT}{server ${PROJECT}_$(get_prev_env "${NEW_ENVS[$PROJECT]}"):5000;}"$'\n'
+        fi
+
+        PROC_ENDPOINT=$(echo "$PROJECT" | cut -d'_' -f2)
+
+        if [ -z "$PROC_ENDPOINT" ]; then
+            PROC_ENDPOINT="svwl"
+        fi
+
+        LOCATIONS+="locations /${PROC_ENDPOINT}/{proxy_pass http://${PROJECT}/;}"$'\n'
+    done
+
     while IFS= read -r line; do
-        for PROJECT in "${PROJECTS[@]}"; do
-            if [[ " ${RESV_PROJECTS[@]} " =~ " $PROJECT " ]]; then
-                line="${line//\{\{upstreams\}\}/upstream ${PROJECT}{server ${PROJECT}_${NEW_ENVS[$PROJECT]}:5000;}}"
-            else
-                line="${line//\{\{upstreams\}\}/upstream ${PROJECT}{server ${PROJECT}_$(get_prev_env "${NEW_ENVS[$PROJECT]}"):5000;}}"
-            fi
-        done
+        line="${line//\{\{upstreams\}\}/$UPSTREAMS}"
+        line="${line//\{\{locations\}\}/$LOCATIONS}"
         echo "$line" >> "$NGINX_PATH"
     done < "$NGINX_TEMP_PATH"
 

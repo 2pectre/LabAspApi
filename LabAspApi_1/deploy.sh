@@ -1,31 +1,21 @@
 # 2411170328 : 전환 중 기존과 신규 환경 컨테이너가 동시 실행되는 상태 해결 필요. 보통 하나의 컨테이너만 실행되는 전환 환경을 구축하여 중복 방지
 # 2411221908 : nginx 폴더 내 구성 변경 발생 시 nginx 구성 리로드 배포만 수행 필요
 
-### 프로젝트 배열 선언(docker-compose.yml api 서비스 명칭 정확히 입력!)
+### ! 프로젝트 배열 선언(docker-compose.yml api 서비스 명칭 입력)
 declare -a PROJECTS=(
-    "labaspapi"
-    "labaspapi_aaaa"
-    "labaspapi_bbbb"
-    "labaspapi_cccc"
+    "labaspapi_dddd"
+    "labaspapi_eeee"
+    "labaspapi_ffff"
 )
 
 # chmod u+x deploy.sh
 # bash deploy.sh
 
-### Git 관련 경로 설정 (최상단 폴더에 있는 .git 을 참조)
-GIT_REPO_DIR="$(cd "$SCRIPT_PWD/.." && pwd)"
-GIT_DIR="$GIT_REPO_DIR/.git"
-WORK_TREE="$GIT_REPO_DIR"
-
-echo $GIT_REPO_DIR
-echo $GIT_DIR
-echo $WORK_TREE
-
 ### GitHub Actions 환경에서는 GITHUB_REF를 사용하고, 로컬 환경에서는 git 명령어를 사용
 if [ -n "$GITHUB_REF" ]; then
     CURRENT_BRANCH=${GITHUB_REF##*/}
 else
-    CURRENT_BRANCH=$(git --git-dir="$GIT_DIR" --work-tree="$WORK_TREE" rev-parse --abbrev-ref HEAD)
+    CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 fi
 
 if [ "$CURRENT_BRANCH" != "deploy" ]; then
@@ -51,8 +41,8 @@ TEMP_DIR="C:/srtmp/"
 mkdir -p "$TEMP_DIR"
 
 # 스크립트의 절대 경로 설정
-SCRIPT_PWD="$(cd "$(dirname "$0")" && pwd)"
-BASE_DIR="$(basename "$SCRIPT_PWD")"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+BASE_DIR="$(basename "$SCRIPT_DIR")"
 PID_FILE="${TEMP_DIR}${BASE_DIR}_deploy.pid"
 
 if [ -f "$PID_FILE" ]; then
@@ -183,7 +173,7 @@ get_prev_env() {
 
 ### 스크립트 메인 진입점
 # Git에서 최신 변경 사항 반영
-git --git-dir="$GIT_DIR" --work-tree="$WORK_TREE" fetch origin deploy
+git fetch origin deploy
 
 for PROJECT in "${PROJECTS[@]}"; do
     # 각 프로젝트의 현재 블루-그린 상태 검사 후 다음 배포 환경 저장
@@ -204,13 +194,12 @@ for PROJECT in "${PROJECTS[@]}"; do
         NEW_ENVS["$PROJECT"]="blue"
     fi
 
-    ### Git을 사용하여 변경 사항 확인, 마지막 배포 커밋이 있는 경우
+    # Git을 사용하여 변경 사항 확인, 마지막 배포 커밋이 있는 경우
     LAST_DEPLOYED_COMMIT=$(cat "$HASH_DIR/$PROJECT.hash" 2>/dev/null || echo "")
 
     if [ -n "$LAST_DEPLOYED_COMMIT" ]; then
-        # 변경 사항 확인 시 --git-dir 및 --work-tree 옵션을 사용하여 경로 지정
-        CHANGED_FILES=$(git --git-dir="$GIT_DIR" --work-tree="$WORK_TREE" diff --name-only "$LAST_DEPLOYED_COMMIT"..origin/deploy)
-        if echo "$CHANGED_FILES" | grep -iq "^$PROJECT/"; then
+        CHANGED_FILES=$(git diff --name-only "$LAST_DEPLOYED_COMMIT"..origin/deploy)
+        if echo "$CHANGED_FILES" | grep -iq "^$BASE_DIR/$PROJECT/"; then
             echo "=============================="
             echo "프로젝트 $PROJECT 에 변경 사항이 있습니다. 블루-그린 전환을 시작합니다."
             echo "=============================="
@@ -284,19 +273,19 @@ if [ ${#RESV_PROJECTS[@]} -gt 0 ]; then
 
     # 배포 완료 후 최신 커밋을 기록
     for PROJECT in "${RESV_PROJECTS[@]}"; do
-        git --git-dir="$GIT_DIR" --work-tree="$WORK_TREE" rev-parse origin/deploy > "$HASH_DIR/$PROJECT.hash"
+        git rev-parse origin/deploy > "$HASH_DIR/$PROJECT.hash"
     done
 
     echo "=============================="
     echo "수정된 *.hash 와 nginx.config 를 deploy 브랜치에 커밋하고 main 에 병합합니다."
     echo "=============================="
-    git --git-dir="$GIT_DIR" --work-tree="$WORK_TREE" add "$HASH_DIR"/*.hash "$NGINX_PATH"
-    git --git-dir="$GIT_DIR" --work-tree="$WORK_TREE" commit -m "Final deployment completed"
-    git --git-dir="$GIT_DIR" --work-tree="$WORK_TREE" push origin deploy
-    git --git-dir="$GIT_DIR" --work-tree="$WORK_TREE" checkout main
-    git --git-dir="$GIT_DIR" --work-tree="$WORK_TREE" merge deploy
-    git --git-dir="$GIT_DIR" --work-tree="$WORK_TREE" push origin main
-    git --git-dir="$GIT_DIR" --work-tree="$WORK_TREE" checkout deploy
+    git add "$HASH_DIR"/*.hash "$NGINX_PATH"
+    git commit -m "Final deployment completed"
+    git push origin deploy
+    git checkout main
+    git merge deploy
+    git push origin main
+    git checkout deploy
 
     echo "=============================="
     echo "배포를 완료했습니다!"

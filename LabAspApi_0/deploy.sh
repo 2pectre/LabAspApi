@@ -234,20 +234,21 @@ if [ ${#RESV_PROJECTS[@]} -gt 0 ]; then
     # nginx_temp.conf 템플릿 치환
     UPSTREAMS=""
     LOCATIONS=""
+
     for PROJECT in "${PROJECTS[@]}"; do
         if [[ " ${RESV_PROJECTS[@]} " =~ " $PROJECT " ]]; then
-            UPSTREAMS+="upstream ${PROJECT}{server ${PROJECT}_${NEW_ENVS[$PROJECT]}:5000;}"$'\n'
+            UPSTREAMS+="upstream ${PROJECT} { server ${PROJECT}_${NEW_ENVS[$PROJECT]}:5000; }"$'\n'
         else
-            UPSTREAMS+="upstream ${PROJECT}{server ${PROJECT}_$(get_prev_env "${NEW_ENVS[$PROJECT]}"):5000;}"$'\n'
+            UPSTREAMS+="upstream ${PROJECT} { server ${PROJECT}_$(get_prev_env "${NEW_ENVS[$PROJECT]}"):5000; }"$'\n'
         fi
 
-        PROC_ENDPOINT=$(echo "$PROJECT" | cut -d'_' -f2)
+        PROC_ENDPOINT="${PROJECT#*_}"
 
-        if [ -z "$PROC_ENDPOINT" ]; then
+        if [ "$PROC_ENDPOINT" = "$PROJECT" ]; then
             PROC_ENDPOINT="svwl"
         fi
 
-        LOCATIONS+="locations /${PROC_ENDPOINT}/{proxy_pass http://${PROJECT}/;}"$'\n'
+        LOCATIONS+="location /${PROC_ENDPOINT}/ { proxy_pass http://${PROJECT}/; }"$'\n'
     done
 
     while IFS= read -r line; do

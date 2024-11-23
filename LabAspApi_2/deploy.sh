@@ -272,7 +272,12 @@ if [ ${#RESV_PROJECTS[@]} -gt 0 ]; then
             delete_containers "1"
             exit 1
         fi
+    else
+        $DOCKER_COMPOSE stop "$NGINX_CONTAINER"
+        $DOCKER_COMPOSE rm -f "$NGINX_CONTAINER"
+        $DOCKER_COMPOSE up -d "$NGINX_CONTAINER"
     fi
+
     if ! $DOCKER_COMPOSE exec "$NGINX_CONTAINER" nginx -t; then
         echo "=============================="
         echo "nginx 설정 테스트에 실패했습니다. 배포를 중단합니다."
@@ -280,7 +285,6 @@ if [ ${#RESV_PROJECTS[@]} -gt 0 ]; then
         delete_containers "1"
         exit 1
     fi
-    $DOCKER_COMPOSE exec "$NGINX_CONTAINER" nginx -s reload
 
     # 프로젝트 이전 환경 컨테이너 중지 및 제거
     delete_containers "0"

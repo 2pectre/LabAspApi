@@ -241,7 +241,7 @@ if [ ${#RESV_PROJECTS[@]} -gt 0 ]; then
             PROC_ENDPOINT="svwl"
         fi
 
-        LOCATIONS+="location /api/${PROC_ENDPOINT}/ {proxy_pass http://${PROJECT}/;}"$'\n'
+        LOCATIONS+="location /${PROC_ENDPOINT}/api/ {proxy_pass http://${PROJECT}/;}"$'\n'
     done
 
     while IFS= read -r line; do

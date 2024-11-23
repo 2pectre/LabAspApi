@@ -4,9 +4,9 @@
 ### ! 프로젝트 배열 선언(docker-compose.yml api 서비스 명칭 입력)
 declare -a PROJECTS=(
     "labaspapi"
-    "labaspapi_dddd"
-    "labaspapi_eeee"
-    "labaspapi_cccc"
+    "labaspapi_gggg"
+    "labaspapi_hhhh"
+    "labaspapi_kkkk"
 )
 
 # chmod u+x deploy.sh

@@ -8,9 +8,9 @@ namespace LabAspApi.Services
     {
         private readonly List<Product> _products = new List<Product>
         {
-            new Product { Id = 1, Name = "LabAspApi_CCC_Product1", Price = 10.0m },
-            new Product { Id = 2, Name = "LabAspApi_CCC_Product2", Price = 20.0m },
-            new Product { Id = 3, Name = "LabAspApi_CCC_Product3", Price = 30.0m }
+            new Product { Id = 1, Name = "LabAspApi_KKKK_Product1", Price = 10.0m },
+            new Product { Id = 2, Name = "LabAspApi_KKKK_Product2", Price = 20.0m },
+            new Product { Id = 3, Name = "LabAspApi_KKKK_Product3", Price = 30.0m }
         };
 
         public IEnumerable<Product> GetAllProducts()

@@ -162,5 +162,4 @@ void CleanupResources()
 // > API 시작
 app.Run();
 
-//00000
-//ㄱㄴㄷ
+//0

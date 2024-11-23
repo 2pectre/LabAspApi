@@ -1,6 +1,3 @@
-# 2411170328 : 전환 중 기존과 신규 환경 컨테이너가 동시 실행되는 상태 해결 필요. 보통 하나의 컨테이너만 실행되는 전환 환경을 구축하여 중복 방지
-# 2411221908 : nginx 폴더 내 구성 변경 발생 시 nginx 구성 리로드 배포만 수행 필요
-
 ### ! 프로젝트 배열 선언(docker-compose.yml api 서비스 명칭 입력)
 declare -a PROJECTS=(
     "labaspapi_gggg"
@@ -72,11 +69,11 @@ HASH_DIR="hash"
 mkdir -p "$HASH_DIR"
 
 ### Windows 환경에 맞춘 경로
-COMPOSE_PATH="./docker-compose.yml"
+COMPOSE_PATH="docker-compose.yml"
 DOCKER_COMPOSE="docker-compose -f $COMPOSE_PATH"
 DELAY=5
-NGINX_PATH="./nginx/nginx.conf"
-NGINX_TEMP_PATH="./nginx_temp.conf"
+NGINX_PATH="nginx/nginx.conf"
+NGINX_TEMP_PATH="nginx_temp.conf"
 NGINX_CONTAINER="$(echo "${BASE_DIR}_nginx" | tr '[:upper:]' '[:lower:]')"
 
 declare -A NEW_ENVS
@@ -233,9 +230,9 @@ if [ ${#RESV_PROJECTS[@]} -gt 0 ]; then
 
     for PROJECT in "${PROJECTS[@]}"; do
         if [[ " ${RESV_PROJECTS[@]} " =~ " $PROJECT " ]]; then
-            UPSTREAMS+="upstream ${PROJECT} { server ${PROJECT}_${NEW_ENVS[$PROJECT]}:5000; }"$'\n'
+            UPSTREAMS+="upstream ${PROJECT}{server ${PROJECT}_${NEW_ENVS[$PROJECT]}:5000;}"$'\n'
         else
-            UPSTREAMS+="upstream ${PROJECT} { server ${PROJECT}_$(get_prev_env "${NEW_ENVS[$PROJECT]}"):5000; }"$'\n'
+            UPSTREAMS+="upstream ${PROJECT}{server ${PROJECT}_$(get_prev_env "${NEW_ENVS[$PROJECT]}"):5000;}"$'\n'
         fi
 
         PROC_ENDPOINT="${PROJECT#*_}"
@@ -244,7 +241,7 @@ if [ ${#RESV_PROJECTS[@]} -gt 0 ]; then
             PROC_ENDPOINT="svwl"
         fi
 
-        LOCATIONS+="location /${PROC_ENDPOINT}/ { proxy_pass http://${PROJECT}/; }"$'\n'
+        LOCATIONS+="location /api/${PROC_ENDPOINT}/ {proxy_pass http://${PROJECT}/;}"$'\n'
     done
 
     while IFS= read -r line; do
@@ -280,7 +277,14 @@ if [ ${#RESV_PROJECTS[@]} -gt 0 ]; then
     # 프로젝트 이전 환경 컨테이너 중지 및 제거
     delete_containers "0"
 
-    # Unused(dangling) 상태의 도커 이미지 삭제
+    # Unused(dangling) 상태의 도커 이미지 삭제. 진행 중인 prune 작업이 끝날 때까지 대기
+    while pgrep -f "docker image prune" >/dev/null; do
+        echo "=============================="
+        echo "다른 docker image prune 작업이 실행 중입니다. 완료될 때까지 대기합니다."
+        echo "=============================="
+        sleep $DELAY
+    done
+
     docker image prune -f
 
     # 배포 완료 후 최신 커밋을 기록
@@ -291,6 +295,7 @@ if [ ${#RESV_PROJECTS[@]} -gt 0 ]; then
     echo "=============================="
     echo "수정된 *.hash 와 nginx.config 를 deploy 브랜치에 커밋하고 main 에 병합합니다."
     echo "=============================="
+    git pull origin deploy
     git add "$HASH_DIR"/*.hash "$NGINX_PATH"
     git commit -m "Final deployment completed"
     git push origin deploy

@@ -46,6 +46,9 @@ PARENT_DIR="$(basename "$PARENT_PWD")"
 SCRIPT_DIR="$(basename "$SCRIPT_PWD")"
 PID_FILE="${TEMP_DIR}${SCRIPT_DIR}_deploy.pid"
 
+# 스크립트 종료 시 LOCK_FILE 과 PID_FILE 삭제 예약 trap 설정
+trap 'rm -f "$LOCK_FILE" "$PID_FILE"' EXIT
+
 if [ -f "$PID_FILE" ]; then
     if kill -0 $(cat "$PID_FILE") 2>/dev/null; then
         echo "=============================="
@@ -62,7 +65,6 @@ fi
 
 # 현재 프로세스 ID를 PID 파일에 기록
 echo $$ > "$PID_FILE"
-trap 'rm -f "$PID_FILE"' EXIT
 
 ### Docker 실행 상태 확인
 if ! docker info >/dev/null 2>&1; then
@@ -316,7 +318,6 @@ if [ ${#RESV_PROJECTS[@]} -gt 0 ]; then
 
     # 잠금 파일 생성
     echo $$ > "$LOCK_FILE"
-    trap 'rm -f "$LOCK_FILE"' EXIT
 
     git add "$HASH_DIR"/*.hash "$NGINX_PATH"
     git commit -m "Final deployment completed"

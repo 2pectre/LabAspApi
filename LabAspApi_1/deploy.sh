@@ -34,10 +34,16 @@ exec > >(while IFS= read -r line; do echo "$(date +'%Y-%m-%d %H:%M:%S') $line"; 
 TEMP_DIR="C:/srtmp/"
 mkdir -p "$TEMP_DIR"
 
-# 스크립트의 절대 경로 설정
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-BASE_DIR="$(basename "$SCRIPT_DIR")"
-PID_FILE="${TEMP_DIR}${BASE_DIR}_deploy.pid"
+# 스크립트의 절대 경로 설정. 현재 스크립트의 위치 기준 경로 설정
+SCRIPT_PWD="$(cd "$(dirname "$0")" && pwd)"
+# 부모 디렉토리 경로 추출
+PARENT_PWD="$(dirname "$SCRIPT_PWD")"
+# 부모 디렉토리 이름 추출
+PARENT_DIR="$(basename "$PARENT_PWD")"
+
+# 스크립트 디렉토리 이름 추출
+SCRIPT_DIR="$(basename "$SCRIPT_PWD")"
+PID_FILE="${TEMP_DIR}${SCRIPT_DIR}_deploy.pid"
 
 if [ -f "$PID_FILE" ]; then
     if kill -0 $(cat "$PID_FILE") 2>/dev/null; then
@@ -74,7 +80,7 @@ DOCKER_COMPOSE="docker-compose -f $COMPOSE_PATH"
 DELAY=5
 NGINX_PATH="nginx/nginx.conf"
 NGINX_TEMP_PATH="nginx_temp.conf"
-NGINX_CONTAINER="$(echo "${BASE_DIR}_nginx" | tr '[:upper:]' '[:lower:]')"
+NGINX_CONTAINER="$(echo "${SCRIPT_DIR}_nginx" | tr '[:upper:]' '[:lower:]')"
 
 declare -A NEW_ENVS
 declare -a RESV_PROJECTS
@@ -193,7 +199,7 @@ for PROJECT in "${PROJECTS[@]}"; do
 
     if [ -n "$LAST_DEPLOYED_COMMIT" ]; then
         CHANGED_FILES=$(git diff --name-only "$LAST_DEPLOYED_COMMIT"..origin/deploy)
-        if echo "$CHANGED_FILES" | grep -iq "^$BASE_DIR/$PROJECT/"; then
+        if echo "$CHANGED_FILES" | grep -iq "^$SCRIPT_DIR/$PROJECT/"; then
             echo "=============================="
             echo "프로젝트 $PROJECT 에 변경 사항이 있습니다. 블루-그린 전환을 시작합니다."
             echo "=============================="
@@ -291,18 +297,26 @@ if [ ${#RESV_PROJECTS[@]} -gt 0 ]; then
     for PROJECT in "${RESV_PROJECTS[@]}"; do
         git rev-parse origin/deploy > "$HASH_DIR/$PROJECT.hash"
     done
-
+    
+    ### *.hash 와 nginx.config 를 deploy 브랜치에 커밋하고 main 에 병합. 중복 사용 방지
     echo "=============================="
     echo "수정된 *.hash 와 nginx.config 를 deploy 브랜치에 커밋하고 main 에 병합합니다."
     echo "=============================="
-    LOCK_FILE="${TEMP_DIR}deploy_git_op.lock"
-    exec 200>"$LOCK_FILE"
-    trap 'flock -u 200; rm -f "$LOCK_FILE"' EXIT
-    flock -x 200
 
-    echo "=============================="
-    echo "다른 작업이 잠금을 보유하고 있습니다. 잠금이 해제될 때까지 대기합니다."
-    echo "=============================="
+    LOCK_FILE="${TEMP_DIR}${PARENT_DIR}_deploy.lock"
+
+    # 잠금 파일이 있을 경우 대기
+    while [ -f "$LOCK_FILE" ]; do
+        echo "=============================="
+        echo "잠금 파일이 존재합니다. 잠금이 해제될 때까지 대기합니다."
+        echo "=============================="
+        sleep $DELAY
+    done
+
+    # 잠금 파일 생성
+    echo $$ > "$LOCK_FILE"
+    trap 'rm -f "$LOCK_FILE"' EXIT
+
     git add "$HASH_DIR"/*.hash "$NGINX_PATH"
     git commit -m "Final deployment completed"
     git push origin deploy
@@ -310,8 +324,6 @@ if [ ${#RESV_PROJECTS[@]} -gt 0 ]; then
     git merge deploy
     git push origin main
     git checkout deploy
-
-    flock -u 200
 
     echo "=============================="
     echo "배포를 완료했습니다!"

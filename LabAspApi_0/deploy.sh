@@ -73,11 +73,11 @@ HASH_DIR="hash"
 mkdir -p "$HASH_DIR"
 
 ### Windows 환경에 맞춘 경로
-COMPOSE_PATH="${COMPOSE_PATH:-./docker-compose.yml}"
+COMPOSE_PATH="./docker-compose.yml"
 DOCKER_COMPOSE="docker-compose -f $COMPOSE_PATH"
 DELAY=5
-NGINX_PATH="${NGINX_PATH:-./nginx/nginx.conf}"
-NGINX_TEMP_PATH="${NGINX_TEMP_PATH:-./nginx_temp.conf}"
+NGINX_PATH="./nginx/nginx.conf"
+NGINX_TEMP_PATH="./nginx_temp.conf"
 NGINX_CONTAINER="$(echo "${BASE_DIR}_nginx" | tr '[:upper:]' '[:lower:]')"
 
 declare -A NEW_ENVS
@@ -292,6 +292,7 @@ if [ ${#RESV_PROJECTS[@]} -gt 0 ]; then
     echo "=============================="
     echo "수정된 *.hash 와 nginx.config 를 deploy 브랜치에 커밋하고 main 에 병합합니다."
     echo "=============================="
+    git pull origin deploy
     git add "$HASH_DIR"/*.hash "$NGINX_PATH"
     git commit -m "Final deployment completed"
     git push origin deploy

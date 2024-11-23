@@ -234,9 +234,9 @@ if [ ${#RESV_PROJECTS[@]} -gt 0 ]; then
     while IFS= read -r line; do
         for PROJECT in "${PROJECTS[@]}"; do
             if [[ " ${RESV_PROJECTS[@]} " =~ " $PROJECT " ]]; then
-                line="${line//\{\{${PROJECT}_env\}\}/${NEW_ENVS[$PROJECT]}}"
+                line="${line//\{\{upstreams\}\}/upstream ${PROJECT}{server ${PROJECT}_${NEW_ENVS[$PROJECT]}:5000;}}"
             else
-                line="${line//\{\{${PROJECT}_env\}\}/$(get_prev_env "${NEW_ENVS[$PROJECT]}")}"
+                line="${line//\{\{upstreams\}\}/upstream ${PROJECT}{server ${PROJECT}_$(get_prev_env "${NEW_ENVS[$PROJECT]}"):5000;}}"
             fi
         done
         echo "$line" >> "$NGINX_PATH"

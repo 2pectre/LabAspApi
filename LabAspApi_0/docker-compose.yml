@@ -26,9 +26,11 @@ services:
     container_name: labaspapi_0_nginx
     ports:
       - "10100:80" # 외부:내부(호스트 포트:컨테이너[nginx] 내부 포트). 내부 포트는 nginx.conf 의 listen 포트와 같도록 설정
+      - "10110:443"
     volumes:
       - ./nginx:/etc/nginx:ro
       - ./log/nginx:/var/log/nginx
+      - C:/specter/ssl/svwln/cnk:/etc/nginx/ssl
     networks:
       - labaspapi_0_network
 #--------------------------------------------------

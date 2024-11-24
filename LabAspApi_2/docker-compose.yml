@@ -1,5 +1,5 @@
 networks:
-  labaspapi_0_network:
+  labaspapi_2_network:
     driver: bridge
 #--------------------------------------------------
 x-api: &api

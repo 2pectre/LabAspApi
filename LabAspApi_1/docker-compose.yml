@@ -1,3 +1,7 @@
+networks:
+  labaspapi_0_network:
+    driver: bridge
+#--------------------------------------------------
 x-api: &api
   restart: always
   environment:
@@ -12,7 +16,7 @@ services:
     image: nginx:latest
     container_name: labaspapi_1_nginx
     ports:
-      - "81:8081"
+      - "81:8080"
     volumes:
       - ./nginx:/etc/nginx:ro
       - ./log/nginx:/var/log/nginx
@@ -60,7 +64,3 @@ services:
       context: ./LabAspApi_FFFF
     image: labaspapi_ffff:green
     container_name: labaspapi_ffff_green
-#--------------------------------------------------
-networks:
-  labaspapi_1_network:
-    driver: bridge

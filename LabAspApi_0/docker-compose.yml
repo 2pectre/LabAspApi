@@ -1,3 +1,7 @@
+networks:
+  labaspapi_0_network:
+    driver: bridge
+#--------------------------------------------------
 x-api: &api
   restart: always
   environment:
@@ -75,6 +79,3 @@ services:
     image: labaspapi_cccc:green
     container_name: labaspapi_cccc_green
 #--------------------------------------------------
-networks:
-  labaspapi_0_network:
-    driver: bridge

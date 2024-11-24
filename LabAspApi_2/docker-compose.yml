@@ -1,8 +1,16 @@
+x-log: &log
+  logging:
+    driver: "json-file"
+    options:
+      max-size: "10m"
+      max-file: "3"
+#--------------------------------------------------
 networks:
   labaspapi_2_network:
     driver: bridge
 #--------------------------------------------------
 x-api: &api
+  <<: *log
   restart: always
   environment:
     - ASPNETCORE_ENVIRONMENT=Production
@@ -12,6 +20,7 @@ x-api: &api
 #--------------------------------------------------
 services:
   labaspapi_2_nginx:
+    <<: *log
     restart: always
     image: nginx:latest
     container_name: labaspapi_2_nginx

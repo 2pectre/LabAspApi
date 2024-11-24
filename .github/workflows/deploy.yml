@@ -1,4 +1,4 @@
-name: lab deploy
+name: Lab Actions
 
 on:
   push:

@@ -47,7 +47,7 @@ SCRIPT_DIR="$(basename "$SCRIPT_PWD")"
 PID_FILE="${TEMP_DIR}${SCRIPT_DIR}_deploy.pid"
 
 # 스크립트 종료 시 LOCK_FILE 과 PID_FILE 삭제 예약 trap 설정
-trap 'rm -f "$LOCK_FILE" "$PID_FILE"' EXIT
+trap 'rm -f "$PID_FILE" "$PRUNE_LOCK_FILE" "$GIT_LOCK_FILE"' EXIT
 
 if [ -f "$PID_FILE" ]; then
     if kill -0 $(cat "$PID_FILE") 2>/dev/null; then
@@ -253,8 +253,16 @@ if [ ${#RESV_PROJECTS[@]} -gt 0 ]; then
         LOCATIONS+="location /${PROC_ENDPOINT}/api/ {proxy_pass http://${PROJECT}/;}"$'\n'
     done
 
+    SCRIPT_DIR_LOW="$(echo "${SCRIPT_DIR}" | tr '[:upper:]' '[:lower:]')"
+    SUB_DOMAIN="${SCRIPT_DIR_LOW#*_}"
+
+    if [ "$SUB_DOMAIN" = "$SCRIPT_DIR_LOW" ]; then
+        SUB_DOMAIN=""
+    fi
+
     while IFS= read -r line; do
         line="${line//\{\{upstreams\}\}/$UPSTREAMS}"
+        line="${line//\{\{server_name\}\}/"server_name api${SUB_DOMAIN}.serverwill.net;"}"
         line="${line//\{\{locations\}\}/$LOCATIONS}"
         echo "$line" >> "$NGINX_PATH"
     done < "$NGINX_TEMP_PATH"
@@ -290,38 +298,43 @@ if [ ${#RESV_PROJECTS[@]} -gt 0 ]; then
     # 프로젝트 이전 환경 컨테이너 중지 및 제거
     delete_containers "0"
 
-    # Unused(dangling) 상태의 도커 이미지 삭제. 진행 중인 prune 작업이 끝날 때까지 대기
-    while pgrep -f "docker image prune" >/dev/null; do
+    ### Unused(dangling) 상태의 도커 이미지 삭제. 진행 중인 prune 작업이 끝날 때까지 대기
+    PRUNE_LOCK_FILE="${TEMP_DIR}${PARENT_DIR}_deploy_prune.lock"
+
+    # 잠금 파일이 있을 경우 대기
+    while [ -f "$PRUNE_LOCK_FILE" ]; do
         echo "=============================="
         echo "다른 docker image prune 작업이 실행 중입니다. 완료될 때까지 대기합니다."
         echo "=============================="
+        docker image prune -f
         sleep $DELAY
     done
 
-    docker image prune -f
+    # 잠금 파일 생성
+    echo $$ > "$PRUNE_LOCK_FILE"
 
     # 배포 완료 후 최신 커밋을 기록
     for PROJECT in "${RESV_PROJECTS[@]}"; do
         git rev-parse origin/deploy > "$HASH_DIR/$PROJECT.hash"
     done
     
-    ### *.hash 와 nginx.config 를 deploy 브랜치에 커밋하고 main 에 병합. 중복 사용 방지
+    ### *.hash 와 nginx.config 를 deploy 브랜치에 커밋하고 main 에 병합. 중복 실행 방지
     echo "=============================="
     echo "수정된 *.hash 와 nginx.config 를 deploy 브랜치에 커밋하고 main 에 병합합니다."
     echo "=============================="
 
-    LOCK_FILE="${TEMP_DIR}${PARENT_DIR}_deploy.lock"
+    GIT_LOCK_FILE="${TEMP_DIR}${PARENT_DIR}_deploy_git.lock"
 
     # 잠금 파일이 있을 경우 대기
-    while [ -f "$LOCK_FILE" ]; do
+    while [ -f "$GIT_LOCK_FILE" ]; do
         echo "=============================="
-        echo "잠금 파일이 존재합니다. 잠금이 해제될 때까지 대기합니다."
+        echo "다른 git 작업이 실행 중입니다. 완료될 때까지 대기합니다."
         echo "=============================="
         sleep $DELAY
     done
 
     # 잠금 파일 생성
-    echo $$ > "$LOCK_FILE"
+    echo $$ > "$GIT_LOCK_FILE"
 
     git add "$HASH_DIR"/*.hash "$NGINX_PATH"
     git commit -m "Final deployment completed"

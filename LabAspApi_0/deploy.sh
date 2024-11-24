@@ -250,19 +250,11 @@ if [ ${#RESV_PROJECTS[@]} -gt 0 ]; then
             PROC_ENDPOINT="svwl"
         fi
 
-        LOCATIONS+="location /${PROC_ENDPOINT}/ {proxy_pass http://${PROJECT}/;}"$'\n'
+        LOCATIONS+="location /api/${PROC_ENDPOINT}/ {proxy_pass http://${PROJECT}/;}"$'\n'
     done
-
-    SCRIPT_DIR_LOW="$(echo "${SCRIPT_DIR}" | tr '[:upper:]' '[:lower:]')"
-    SUB_DOMAIN="${SCRIPT_DIR_LOW#*_}"
-
-    if [ "$SUB_DOMAIN" = "$SCRIPT_DIR_LOW" ]; then
-        SUB_DOMAIN=""
-    fi
 
     while IFS= read -r line; do
         line="${line//\{\{upstreams\}\}/$UPSTREAMS}"
-        line="${line//\{\{server_name\}\}/"server_name api${SUB_DOMAIN}.serverwill.net;"}"
         line="${line//\{\{locations\}\}/$LOCATIONS}"
         echo "$line" >> "$NGINX_PATH"
     done < "$NGINX_TEMP_PATH"

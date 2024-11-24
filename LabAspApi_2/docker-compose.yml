@@ -16,7 +16,7 @@ services:
     image: nginx:latest
     container_name: labaspapi_2_nginx
     ports:
-      - "82:8080"
+      - "10103:80"
     volumes:
       - ./nginx:/etc/nginx:ro
       - ./log/nginx:/var/log/nginx

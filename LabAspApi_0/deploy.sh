@@ -250,7 +250,7 @@ if [ ${#RESV_PROJECTS[@]} -gt 0 ]; then
             PROC_ENDPOINT="svwl"
         fi
 
-        LOCATIONS+="location /api/${PROC_ENDPOINT}/ {proxy_pass http://${PROJECT}/;}"$'\n'
+        LOCATIONS+="location /${PROC_ENDPOINT}/api/ {proxy_pass http://${PROJECT}/;}"$'\n'
     done
 
     while IFS= read -r line; do
@@ -334,7 +334,7 @@ if [ ${#RESV_PROJECTS[@]} -gt 0 ]; then
     git checkout main
     git merge deploy
     git push origin main
-    git checkout deploy
+    git checkout main
 
     echo "=============================="
     echo "배포를 완료했습니다!"

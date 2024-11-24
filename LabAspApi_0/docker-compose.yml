@@ -30,7 +30,9 @@ services:
     volumes:
       - ./nginx:/etc/nginx:ro
       - ./log/nginx:/var/log/nginx
-      - C:/specter/ssl/svwln/cnk:/etc/nginx/ssl
+      - C:/specter/ssl/svwln/svwln.crt:/usr/share/svwln/svwln.crt:ro
+      - C:/specter/ssl/svwln/svwln.key:/usr/share/svwln/svwln.key:ro
+      #- C:/specter/ssl/svwln/svwln-chain-only.pem:/usr/share/svwln/svwln-chain-only.pem:ro
     networks:
       - labaspapi_0_network
 #--------------------------------------------------

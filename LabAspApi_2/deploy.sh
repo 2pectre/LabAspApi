@@ -249,7 +249,7 @@ if [ ${#RESV_PROJECTS[@]} -gt 0 ]; then
             PROC_ENDPOINT="svwl"
         fi
 
-        LOCATIONS+="location /${PROC_ENDPOINT}/api/ {proxy_pass http://${PROJECT}/;}"$'\n'
+        LOCATIONS+="location /${PROC_ENDPOINT}/ {proxy_pass http://${PROJECT}/;}"$'\n'
     done
 
     SCRIPT_DIR_LOW="$(echo "${SCRIPT_DIR}" | tr '[:upper:]' '[:lower:]')"

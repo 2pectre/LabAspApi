@@ -5,13 +5,6 @@ declare -a PROJECTS=(
     "labaspapi_kkkk"
 )
 
-if [ "$CURRENT_BRANCH" != "deploy" ]; then
-    echo "=============================="
-    echo "현재 브랜치는 $CURRENT_BRANCH 입니다. deploy 브랜치에서만 실행 가능합니다."
-    echo "=============================="
-    exit 1
-fi
-
 ### GitHub Actions 환경에서는 GITHUB_REF를 사용하고, 로컬 환경에서는 git 명령어를 사용
 if [ -n "$GITHUB_REF" ]; then
     echo "=============================="
@@ -25,6 +18,13 @@ else
     echo "=============================="
     exit 1
     CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+fi
+
+if [ "$CURRENT_BRANCH" != "deploy" ]; then
+    echo "=============================="
+    echo "현재 브랜치는 $CURRENT_BRANCH 입니다. deploy 브랜치에서만 실행 가능합니다."
+    echo "=============================="
+    exit 1
 fi
 
 ### 오류 발생 시 스크립트 종료

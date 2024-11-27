@@ -22,7 +22,7 @@ jobs:
 
       - name: Find and Run deploy.sh for LabAspApi folders
         run: |
-          $baseDir = "$env:GITHUB_WORKSPACE\\LabAspApi"
+          $baseDir = "$env:GITHUB_WORKSPACE"
           Get-ChildItem -Path $baseDir -Directory -Filter 'LabAspApi_*' | ForEach-Object {
             $deployScript = "$($_.FullName)\\deploy.sh"
             if (Test-Path $deployScript) {

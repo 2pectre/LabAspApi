@@ -22,13 +22,13 @@ jobs:
 
       - name: Find and Run deploy.sh for LabAspApi folders
         run: |
-          $baseDir = 'C:\actions-runner\_work\LabAspApi\LabAspApi'
+          $baseDir = 'C:\\actions-runner\\_work\\LabAspApi\\LabAspApi'
           Get-ChildItem -Path $baseDir -Directory -Filter 'LabAspApi_*' | ForEach-Object {
             $deployScript = "$_.\deploy.sh"
             if (Test-Path $deployScript) {
               Write-Output "Running deploy script in $($_.FullName)"
               Push-Location $_.FullName
-              & "C:\Program Files\Git\bin\bash.exe" $deployScript
+              & "C:\\Program Files\\Git\\bin\\bash.exe" $deployScript
               Pop-Location
             } else {
               Write-Output "No deploy.sh found in $($_.FullName)"

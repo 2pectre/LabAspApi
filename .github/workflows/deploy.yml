@@ -34,7 +34,7 @@ jobs:
           $outputPath = "${{ github.env }}"
           Add-Content $outputPath "FOLDERS=$($validFolders -join ',')"
         shell: powershell
-
+      
       - name: Deploy scripts
         run: |
           $folders = $Env:FOLDERS.Split(',')

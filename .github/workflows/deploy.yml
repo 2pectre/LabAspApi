@@ -29,7 +29,12 @@ jobs:
               Write-Output "Running deploy script in $($_.FullName)"
               Push-Location $_.FullName
               & "C:\Program Files\Git\bin\bash.exe" $deployScript
+              $exitCode = $LASTEXITCODE
               Pop-Location
+              if ($exitCode -ne 0) {
+                Write-Error "deploy.sh failed in $($_.FullName) with exit code $exitCode"
+                exit $exitCode
+              }
             } else {
               Write-Output "No deploy.sh found in $($_.FullName)"
             }

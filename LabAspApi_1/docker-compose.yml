@@ -32,8 +32,13 @@ services:
     networks:
       - labaspapi_1_network
 #--------------------------------------------------
+x-labaspapi_db: &labaspapi_db
+  environment:
+    - ConnectionStrings__DefaultConnection=${labaspapi_db}
+
   labaspapi_dddd_blue:
     <<: *api
+    <<: *labaspapi_db
     build:
       context: ./LabAspApi_DDDD
     image: labaspapi_dddd:blue
@@ -41,6 +46,7 @@ services:
 
   labaspapi_dddd_green:
     <<: *api
+    <<: *labaspapi_db
     build:
       context: ./LabAspApi_DDDD
     image: labaspapi_dddd:green

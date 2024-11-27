@@ -22,6 +22,12 @@ builder.Services.AddScoped<IDbConnection>(sp => new SqlConnection(connectionStri
 
 //builder.Services.AddScoped<IDbConnection>(sp => new SqlConnection(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// 환경 변수로부터 연결 문자열 가져오기
+string? connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+// SqlConnection을 위해 서비스 등록
+builder.Services.AddScoped<IDbConnection>(db => new SqlConnection(connectionString));
+
 // > MVC 패턴 Controller 사용 설정
 builder.Services.AddControllers();
 
@@ -29,7 +35,7 @@ builder.Services.AddControllers();
 // > AddScoped : 각 요청마다 하나의 인스턴스를 생성하고 요청 내에서는 재사용
 // > AddTransient : 요청될 때마다 새로운 인스턴스를 생성하며, 상태 공유 안함
 builder.Services.AddScoped<ProductsService>();
-//builder.Services.AddScoped<TestService>();
+builder.Services.AddScoped<TestService>();
 
 var app = builder.Build();
 

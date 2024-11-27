@@ -8,7 +8,7 @@ declare -a PROJECTS=(
 ### GitHub Actions 환경에서는 GITHUB_REF를 사용하고, 로컬 환경에서는 git 명령어를 사용
 if [ -n "$GITHUB_REF" ]; then
     echo "=============================="
-    echo "GitHub Actions 환경에서 실행됩니다."
+    echo "GitHub Actions 환경에서 실행됩니다. $$GITHUB_REF"
     echo "=============================="
     exit 1
     CURRENT_BRANCH=${GITHUB_REF##*/}

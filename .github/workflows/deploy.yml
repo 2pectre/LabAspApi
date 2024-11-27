@@ -23,16 +23,6 @@ jobs:
       - name: Run deploy.sh for LabAspApi_0
         working-directory: LabAspApi_0
         run: |
-<<<<<<< Updated upstream
-          $rootDir = 'C:\actions-runner\_work\LabAspApi\LabAspApi'
-          $folders = Get-ChildItem -Path $rootDir -Directory | Where-Object { $_.Name -match '^LabAspApi_\d+$' }
-          foreach ($folder in $folders) {
-            $deployScript = "$($folder.FullName)\deploy.sh"
-            if (Test-Path $deployScript) {
-              & "C:\Program Files\Git\bin\bash.exe" $deployScript
-            }
-          }
-=======
           & "C:\Program Files\Git\bin\bash.exe" ./deploy.sh
         shell: powershell
 
@@ -46,5 +36,4 @@ jobs:
         working-directory: LabAspApi_2
         run: |
           & "C:\Program Files\Git\bin\bash.exe" ./deploy.sh
->>>>>>> Stashed changes
         shell: powershell

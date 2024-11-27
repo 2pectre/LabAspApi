@@ -39,7 +39,10 @@ jobs:
         run: |
           $folders = $Env:FOLDERS.Split(',')
           foreach ($folder in $folders) {
-            Write-Host "Running deploy.sh in $folder"
-            & "C:\Program Files\Git\bin\bash.exe" "$Env:GITHUB_WORKSPACE\$folder\deploy.sh"
+            $deployPath = "$Env:GITHUB_WORKSPACE\$folder\deploy.sh"
+            $deployDir = Split-Path -Parent $deployPath
+            Push-Location $deployDir
+            & "C:\Program Files\Git\bin\bash.exe" "./deploy.sh"
+            Pop-Location
           }
         shell: powershell

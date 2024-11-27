@@ -20,27 +20,20 @@ jobs:
           git config --global user.email "2pectre@users.noreply.github.com"
         shell: powershell
 
-      - name: Find and Run deploy.sh for LabAspApi folders
+      - name: Run deploy.sh for LabAspApi_0
+        working-directory: C:\actions-runner\_work\LabAspApi\LabAspApi\LabAspApi_0
         run: |
-          $baseDir = 'C:\actions-runner\_work\LabAspApi\LabAspApi'
-          Get-ChildItem -Path $baseDir -Directory -Filter 'LabAspApi_*' | ForEach-Object {
-            $deployScript = "$($_.FullName)\deploy.sh"
-            if (Test-Path $deployScript) {
-              Write-Output "Running deploy script in $($_.FullName)"
-              Push-Location $_.FullName
-              try {
-                & "C:\Program Files\Git\bin\bash.exe" $deployScript
-                if ($LASTEXITCODE -ne 0) {
-                  throw "deploy.sh failed in $($_.FullName) with exit code $LASTEXITCODE"
-                }
-              } catch {
-                Write-Error $_
-                Pop-Location
-                exit 1
-              }
-              Pop-Location
-            } else {
-              Write-Output "No deploy.sh found in $($_.FullName)"
-            }
-          }
+          & "C:\Program Files\Git\bin\bash.exe" ./deploy.sh
+        shell: powershell
+
+      - name: Run deploy.sh for LabAspApi_1
+        working-directory: C:\actions-runner\_work\LabAspApi\LabAspApi\LabAspApi_1
+        run: |
+          & "C:\Program Files\Git\bin\bash.exe" ./deploy.sh
+        shell: powershell
+
+      - name: Run deploy.sh for LabAspApi_2
+        working-directory: C:\actions-runner\_work\LabAspApi\LabAspApi\LabAspApi_2
+        run: |
+          & "C:\Program Files\Git\bin\bash.exe" ./deploy.sh
         shell: powershell

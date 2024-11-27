@@ -15,7 +15,7 @@ if (app.Environment.IsDevelopment())
     app.UseDeveloperExceptionPage();
 }
 
-app.UseRouting();
+//app.UseRouting();
 app.UseAuthorization();
 app.MapControllers();
 

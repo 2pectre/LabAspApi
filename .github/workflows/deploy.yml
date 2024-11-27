@@ -22,12 +22,12 @@ jobs:
 
       - name: Find and Run deploy.sh for each LabAspApi folder
         run: |
-          $rootDir = 'C:\actions-runner\_work\LabAspApi\LabAspApi'
-          $folders = Get-ChildItem -Path $rootDir -Directory | Where-Object { $_.Name -match '^LabAspApi_\d+$' }
+          $rootDir = 'C:\\actions-runner\\_work\\LabAspApi\\LabAspApi'
+          $folders = Get-ChildItem -Path $rootDir -Directory | Where-Object { $_.Name -match '^LabAspApi_\\d+$' }
           foreach ($folder in $folders) {
-            $deployScript = "$($folder.FullName)\deploy.sh"
+            $deployScript = \"$($folder.FullName)\\deploy.sh\"
             if (Test-Path $deployScript) {
-              & "C:\Program Files\Git\bin\bash.exe" $deployScript
+              & \"C:\\Program Files\\Git\\bin\\bash.exe\" $deployScript
             }
           }
         shell: powershell

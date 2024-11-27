@@ -20,20 +20,24 @@ jobs:
           git config --global user.email "2pectre@users.noreply.github.com"
         shell: powershell
 
-      - name: Run deploy.sh for LabAspApi_0
-        working-directory: C:\actions-runner\_work\LabAspApi\LabAspApi\LabAspApi_0
+      - name: Find and Run deploy.sh for LabAspApi folders
         run: |
-          & "C:\Program Files\Git\bin\bash.exe" ./deploy.sh
-        shell: powershell
-
-      - name: Run deploy.sh for LabAspApi_1
-        working-directory: C:\actions-runner\_work\LabAspApi\LabAspApi\LabAspApi_1
-        run: |
-          & "C:\Program Files\Git\bin\bash.exe" ./deploy.sh
-        shell: powershell
-
-      - name: Run deploy.sh for LabAspApi_2
-        working-directory: C:\actions-runner\_work\LabAspApi\LabAspApi\LabAspApi_2
-        run: |
-          & "C:\Program Files\Git\bin\bash.exe" ./deploy.sh
+          $baseDir = 'C:\actions-runner\_work\LabAspApi\LabAspApi'
+          Get-ChildItem -Path $baseDir -Directory -Filter 'LabAspApi_*' | ForEach-Object {
+            $deployScript = "$($_.FullName)\deploy.sh"
+            if (Test-Path $deployScript) {
+              Write-Output "Running deploy script in $($_.FullName)"
+              Push-Location $_.FullName
+              & "C:\Program Files\Git\bin\bash.exe" $deployScript
+              $exitCode = $LASTEXITCODE
+              Pop-Location
+              if ($exitCode -ne 0) {
+                Write-Error "deploy.sh failed in $($_.FullName) with exit code $exitCode"
+                Write-Output "Please check the script and logs for more details."
+                exit $exitCode
+              }
+            } else {
+              Write-Output "No deploy.sh found in $($_.FullName)"
+            }
+          }
         shell: powershell

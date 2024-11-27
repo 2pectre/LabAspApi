@@ -28,13 +28,17 @@ jobs:
             if (Test-Path $deployScript) {
               Write-Output "Running deploy script in $($_.FullName)"
               Push-Location $_.FullName
-              & "C:\Program Files\Git\bin\bash.exe" $deployScript
-              $exitCode = $LASTEXITCODE
-              Pop-Location
-              if ($exitCode -ne 0) {
-                Write-Error "deploy.sh failed in $($_.FullName) with exit code $exitCode"
-                exit $exitCode
+              try {
+                & "C:\Program Files\Git\bin\bash.exe" $deployScript
+                if ($LASTEXITCODE -ne 0) {
+                  throw "deploy.sh failed in $($_.FullName) with exit code $LASTEXITCODE"
+                }
+              } catch {
+                Write-Error $_
+                Pop-Location
+                exit 1
               }
+              Pop-Location
             } else {
               Write-Output "No deploy.sh found in $($_.FullName)"
             }

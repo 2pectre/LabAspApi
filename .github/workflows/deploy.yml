@@ -46,5 +46,3 @@ jobs:
             Pop-Location
           }
         shell: powershell
-        env:
-          FOLDERS: ${{ steps.find-folders.outputs.FOLDERS }}

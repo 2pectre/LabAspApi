@@ -22,13 +22,16 @@ jobs:
 
       - name: Run deploy.sh for dynamically detected folders
         run: |
-          Get-ChildItem -Directory -Filter "LabAspApi_*" | ForEach-Object {
-            $deployScript = Join-Path $_.FullName "deploy.sh"
+          $baseDir = "$env:GITHUB_WORKSPACE"
+          Get-ChildItem -Path $baseDir -Directory -Filter "LabAspApi_*" | ForEach-Object {
+            $folderPath = $_.FullName
+            $deployScript = Join-Path $folderPath "deploy.sh"
+
             if (Test-Path $deployScript) {
-              Write-Host "Running deploy.sh in $($_.Name)"
+              Write-Host "Running deploy.sh in $folderPath"
               & "C:\Program Files\Git\bin\bash.exe" $deployScript
             } else {
-              Write-Host "deploy.sh not found in $($_.Name), skipping."
+              Write-Host "deploy.sh not found in $folderPath, skipping."
             }
           }
         shell: powershell

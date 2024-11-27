@@ -20,9 +20,20 @@ jobs:
           git config --global user.email "2pectre@users.noreply.github.com"
         shell: powershell
 
-      - name: Run deploy.sh
+      - name: Run deploy.sh for LabAspApi_0
+        working-directory: C:\actions-runner\_work\LabAspApi\LabAspApi\LabAspApi_0
         run: |
-          & "C:\Program Files\Git\bin\bash.exe" ./LabAspApi_0/deploy.sh
-          & "C:\Program Files\Git\bin\bash.exe" ./LabAspApi_1/deploy.sh
-          & "C:\Program Files\Git\bin\bash.exe" ./LabAspApi_2/deploy.sh
+          & "C:\Program Files\Git\bin\bash.exe" ./deploy.sh
+        shell: powershell
+
+      - name: Run deploy.sh for LabAspApi_1
+        working-directory: C:\actions-runner\_work\LabAspApi\LabAspApi\LabAspApi_1
+        run: |
+          & "C:\Program Files\Git\bin\bash.exe" ./deploy.sh
+        shell: powershell
+
+      - name: Run deploy.sh for LabAspApi_2
+        working-directory: C:\actions-runner\_work\LabAspApi\LabAspApi\LabAspApi_2
+        run: |
+          & "C:\Program Files\Git\bin\bash.exe" ./deploy.sh
         shell: powershell

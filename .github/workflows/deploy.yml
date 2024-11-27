@@ -21,19 +21,16 @@ jobs:
         shell: powershell
 
       - name: Run deploy.sh for LabAspApi_0
-        working-directory: C:\actions-runner\_work\LabAspApi\LabAspApi\LabAspApi_0
         run: |
-          & "C:\Program Files\Git\bin\bash.exe" ./deploy.sh
+          & "C:\Program Files\Git\bin\bash.exe" ./LabAspApi_0/deploy.sh
         shell: powershell
 
       - name: Run deploy.sh for LabAspApi_1
-        working-directory: C:\actions-runner\_work\LabAspApi\LabAspApi\LabAspApi_1
         run: |
-          & "C:\Program Files\Git\bin\bash.exe" ./deploy.sh
+          & "C:\Program Files\Git\bin\bash.exe" ./LabAspApi_1/deploy.sh
         shell: powershell
 
       - name: Run deploy.sh for LabAspApi_2
-        working-directory: C:\actions-runner\_work\LabAspApi\LabAspApi\LabAspApi_2
         run: |
-          & "C:\Program Files\Git\bin\bash.exe" ./deploy.sh
+          & "C:\Program Files\Git\bin\bash.exe" ./LabAspApi_2/deploy.sh
         shell: powershell

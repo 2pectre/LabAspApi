@@ -1,4 +1,3 @@
-
 name: Lab Actions
 
 on:
@@ -21,14 +20,20 @@ jobs:
           git config --global user.email "2pectre@users.noreply.github.com"
         shell: powershell
 
-      - name: Find and Run deploy.sh for each LabAspApi folder
+      - name: Run deploy.sh for LabAspApi_0
+        working-directory: C:\actions-runner\_work\LabAspApi\LabAspApi\LabAspApi_0
         run: |
-          $rootDir = 'C:\\actions-runner\\_work\\LabAspApi\\LabAspApi'
-          $folders = Get-ChildItem -Path $rootDir -Directory | Where-Object { $_.Name -match '^LabAspApi_\\d+$' }
-          foreach ($folder in $folders) {
-            $deployScript = \"$($folder.FullName)\\deploy.sh\"
-            if (Test-Path $deployScript) {
-              & \"C:\\Program Files\\Git\\bin\\bash.exe\" $deployScript
-            }
-          }
+          & "C:\Program Files\Git\bin\bash.exe" ./deploy.sh
+        shell: powershell
+
+      - name: Run deploy.sh for LabAspApi_1
+        working-directory: C:\actions-runner\_work\LabAspApi\LabAspApi\LabAspApi_1
+        run: |
+          & "C:\Program Files\Git\bin\bash.exe" ./deploy.sh
+        shell: powershell
+
+      - name: Run deploy.sh for LabAspApi_2
+        working-directory: C:\actions-runner\_work\LabAspApi\LabAspApi\LabAspApi_2
+        run: |
+          & "C:\Program Files\Git\bin\bash.exe" ./deploy.sh
         shell: powershell

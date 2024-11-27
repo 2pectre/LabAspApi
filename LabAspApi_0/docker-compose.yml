@@ -35,45 +35,41 @@ services:
     networks:
       - labaspapi_0_network
 #--------------------------------------------------
-x-labaspapi_db: &labaspapi_db
-  environment:
-    - ConnectionStrings__DefaultConnection=${labaspapi_db}
-
   labaspapi_blue:
     <<: *api
-    <<: *labaspapi_db
     build:
       context: ./LabAspApi
     image: labaspapi:blue
     container_name: labaspapi_blue
+    environment:
+    - ConnectionStrings__DefaultConnection=${labaspapi_db}
 
   labaspapi_green:
     <<: *api
-    <<: *labaspapi_db
     build:
       context: ./LabAspApi
     image: labaspapi:green
     container_name: labaspapi_green
+    environment:
+    - ConnectionStrings__DefaultConnection=${labaspapi_db}
 #--------------------------------------------------
-x-labaspapi_aaaa_db: &labaspapi_aaaa_db
-  environment:
-    - ConnectionStrings__DefaultConnection=${labaspapi_aaaa_db}
-
   labaspapi_aaaa_blue:
     <<: *api
-    <<: *labaspapi_aaaa_db
     build:
       context: ./LabAspApi_AAAA
     image: labaspapi_aaaa:blue
     container_name: labaspapi_aaaa_blue
+    environment:
+    - ConnectionStrings__DefaultConnection=${labaspapi_aaaa_db}
 
   labaspapi_aaaa_green:
     <<: *api
-    <<: *labaspapi_aaaa_db
     build:
       context: ./LabAspApi_AAAA
     image: labaspapi_aaaa:green
     container_name: labaspapi_aaaa_green
+    environment:
+    - ConnectionStrings__DefaultConnection=${labaspapi_aaaa_db}
 #--------------------------------------------------
   labaspapi_bbbb_blue:
     <<: *api

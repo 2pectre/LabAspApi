@@ -84,9 +84,7 @@ mkdir -p "$HASH_DIR"
 
 ### Windows 환경에 맞춘 경로
 COMPOSE_PATH="docker-compose.yml"
-# docker-compose 환경 파일 경로 지정
-ENV_FILE_PATH="C:/specter/env/srengine/docker-compose.env"
-DOCKER_COMPOSE="docker-compose -f $COMPOSE_PATH --env-file $ENV_FILE_PATH"
+DOCKER_COMPOSE="docker-compose -f $COMPOSE_PATH"
 DELAY=5
 NGINX_PATH="nginx/nginx.conf"
 NGINX_TEMP_PATH="nginx_temp.conf"

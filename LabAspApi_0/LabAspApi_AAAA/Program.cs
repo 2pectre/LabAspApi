@@ -15,6 +15,11 @@ builder.Services.AddControllers();
 builder.Services.AddScoped<ProductsService>();
 builder.Services.AddScoped<TestService>();
 
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
